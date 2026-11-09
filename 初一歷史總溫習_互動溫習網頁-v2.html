@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>初一歷史總溫習 - 互動測驗系統</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --primary: #3498db;
+            --primary-hover: #2980b9;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --border-color: #e0e0e0;
+            --box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --header-bg: #2c3e50;
+            --header-text: #ffffff;
+            --opt-bg: #f8f9fa;
+            --opt-hover: #eef2f7;
+            --exp-bg: #fff9e6;
+            --exp-border: #f1c40f;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #e6e6e6;
+            --primary: #4e54c8;
+            --primary-hover: #3f44a5;
+            --success: #27ae60;
+            --danger: #c0392b;
+            --warning: #d35400;
+            --border-color: #2a3b5c;
+            --box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            --header-bg: #0f3460;
+            --header-text: #ffffff;
+            --opt-bg: #0f3460;
+            --opt-hover: #1f4068;
+            --exp-bg: #2b2b1f;
+            --exp-border: #d4ac0d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
+
+        header {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .theme-toggle {
+            background: transparent;
+            border: 1px solid var(--header-text);
+            color: var(--header-text);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 25px auto;
+            padding: 0 15px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+        }
+
+        /* 設定與主頁 */
+        .setup-group {
+            margin-bottom: 20px;
+        }
+
+        .setup-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.05rem;
+        }
+
+        .setup-group select, .setup-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* 答題區域 */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background-color: var(--opt-bg);
+            border: 1px solid var(--border-color);
+            padding: 14px 18px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover {
+            background-color: var(--opt-hover);
+        }
+
+        .option-btn.selected {
+            border-color: var(--primary);
+            background-color: rgba(52, 152, 219, 0.15);
+            font-weight: bold;
+        }
+
+        .option-btn.correct {
+            background-color: rgba(46, 204, 113, 0.2) !important;
+            border-color: var(--success) !important;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .option-btn.wrong {
+            background-color: rgba(231, 76, 60, 0.2) !important;
+            border-color: var(--danger) !important;
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .explanation-box {
+            background-color: var(--exp-bg);
+            border-left: 4px solid var(--exp-border);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        .hint-btn-box {
+            margin-bottom: 15px;
+        }
+
+        .nav-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .nav-btns button {
+            flex: 1;
+        }
+
+        /* 答題地圖/導航格 */
+        .q-map {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .q-map-item {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background-color: var(--card-bg);
+        }
+
+        .q-map-item.answered {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .q-map-item.active {
+            outline: 2px solid var(--primary);
+            font-weight: bold;
+        }
+
+        .q-map-item.correct-map {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .q-map-item.wrong-map {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        /* 結算頁面 */
+        .results-header {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .score-circle {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 15px auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .score-number {
+            font-size: 2.2rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .score-total {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background-color: var(--opt-bg);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .stat-val {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .review-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                padding: 18px;
+            }
+            .question-title {
+                font-size: 1.05rem;
+            }
+            .option-btn {
+                padding: 12px 14px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>初一歷史溫習系統</h1>
+        <button class="theme-toggle" onclick="toggleTheme()">🌓 切換模式</button>
+    </header>
+
+    <div class="container">
+
+        <!-- 1. 設定頁面 -->
+        <div id="setup-page" class="card">
+            <h2 style="margin-bottom: 20px; text-align: center;">測驗設定</h2>
+            
+            <div class="setup-group">
+                <label for="unit-select">📚 選擇溫習範圍：</label>
+                <select id="unit-select">
+                    <option value="all">全範圍（第一至三單元）</option>
+                    <option value="1">第一、二單元（史前至戰國）</option>
+                    <option value="3">第三單元（秦漢時期）</option>
+                </select>
+            </div>
+
+            <div class="setup-group">
+                <label for="count-select">🔢 選擇題目數量：</label>
+                <select id="count-select">
+                    <option value="30">30 題</option>
+                    <option value="50" selected>50 題</option>
+                    <option value="all">全部題目（全題庫挑戰）</option>
+                </select>
+            </div>
+
+            <div class="setup-group">
+                <label for="mode-select">🎮 選擇作答模式：</label>
+                <select id="mode-select">
+                    <option value="exam">【模擬考試模式】交卷後統一看成績與解析</option>
+                    <option value="practice">【即時溫習模式】每題可按「提示」或答題後顯示解析</option>
+                </select>
+            </div>
+
+            <div class="setup-group">
+                <label for="timer-toggle">⏱️ 限時功能：</label>
+                <select id="timer-toggle">
+                    <option value="off">不限時</option>
+                    <option value="30">30 分鐘倒數</option>
+                    <option value="45">45 分鐘倒數</option>
+                </select>
+            </div>
+
+            <button class="btn btn-success" onclick="startQuiz()" style="margin-top: 10px;">🚀 開始溫習</button>
+        </div>
+
+        <!-- 2. 答題頁面 -->
+        <div id="quiz-page" class="card hidden">
+            <div class="quiz-header">
+                <span id="quiz-progress-text">題目 1 / 50</span>
+                <span id="quiz-timer">⏱️ 00:00</span>
+            </div>
+
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+
+            <div id="question-title" class="question-title">題目內容</div>
+
+            <div id="options-container" class="options-grid">
+                <!-- 選項由 JS 動態生成 -->
+            </div>
+
+            <!-- 即時溫習模式：提示按鈕 -->
+            <div id="hint-btn-box" class="hint-btn-box hidden">
+                <button class="btn btn-warning" onclick="toggleHint()" style="padding: 8px 16px; font-size: 0.9rem; width: auto;">💡 顯示提示（解析）</button>
+            </div>
+
+            <div id="instant-explanation" class="explanation-box hidden">
+                <strong>💡 提示與解析：</strong>
+                <p id="explanation-text"></p>
+            </div>
+
+            <div class="nav-btns">
+                <button id="prev-btn" class="btn btn-outline" onclick="changeQuestion(-1)">⬅️ 上一題</button>
+                <button id="next-btn" class="btn" onclick="changeQuestion(1)">下一題 ➡️</button>
+                <button id="submit-btn" class="btn btn-success hidden" onclick="submitQuiz()">📥 完成交卷</button>
+            </div>
+
+            <!-- 題目快速跳轉地圖 -->
+            <div id="q-map" class="q-map"></div>
+        </div>
+
+        <!-- 3. 結算與錯題解析頁面 -->
+        <div id="results-page" class="card hidden">
+            <div class="results-header">
+                <h2>🎉 測驗完成！</h2>
+                <div class="score-circle">
+                    <span id="final-score" class="score-number">80</span>
+                    <span id="score-label" class="score-total">分</span>
+                </div>
+                <p id="score-comment">表現不錯，繼續加油！</p>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-val" style="color: var(--success);" id="stat-correct">0</div>
+                    <div style="font-size: 0.85rem;">正確數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" style="color: var(--danger);" id="stat-wrong">0</div>
+                    <div style="font-size: 0.85rem;">錯誤數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="stat-time">00:00</div>
+                    <div style="font-size: 0.85rem;">用時</div>
+                </div>
+            </div>
+
+            <div class="nav-btns" style="margin-bottom: 25px;">
+                <button id="redo-wrong-btn" class="btn btn-outline" onclick="redoWrongQuestions()">🔁 僅重做本次錯題</button>
+                <button class="btn" onclick="restartQuiz()">🔄 重新開始測驗</button>
+            </div>
+
+            <h3 style="margin-bottom: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">📑 詳細答題檢視與錯題解析</h3>
+            <div id="review-container">
+                <!-- 檢視清單由 JS 生成 -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 題庫數據
+        const rawQuestions = [{"id": "U1_01", "unit": 1, "question": "以父傳子、子傳孫的權力繼承方式，稱為甚麼制度？", "options": ["封建制度", "世襲制度", "皇族制度", "血緣制度"], "answer": 1, "explanation": "權力由父子相傳或兄終弟及，取代了原來的禪讓制，稱為世襲制度。"}, {"id": "U1_02", "unit": 1, "question": "秦統一六國，結束了春秋戰國時代多少年的分裂局面？", "options": ["四百多年", "五百多年", "六百多年", "七百多年"], "answer": 1, "explanation": "春秋戰國時期從公元前770年平王東遷起，到公元前221年秦滅六國止，大約歷時五百多年。"}, {"id": "U1_03", "unit": 1, "question": "西周時期，周禮中對禮器「鼎」的使用規格有明確規定：「天子九鼎、諸侯七鼎、大夫五鼎、士三鼎或一鼎」。這種規定反映的實質問題是（）。", "options": ["西周呈現等級森嚴的特徵", "西周社會的腐敗現象嚴重", "西周的禮樂制度健全", "西周的青銅冶煉技術落後"], "answer": 0, "explanation": "鼎的數量嚴格按照貴族身分等級區分，體現了西周禮樂制度下等級森嚴的特徵。"}, {"id": "U1_04", "unit": 1, "question": "戰國時代，各國為了富國強兵而推行變法，其中以哪人的變法最為有效？", "options": ["李斯", "蘇秦", "商鞅", "張儀"], "answer": 2, "explanation": "戰國時期秦國商鞅變法最為徹底，使秦國一躍成為最強盛的集權大國。"}, {"id": "U1_05", "unit": 1, "question": "舜派誰治理洪水，成功解除了水患？", "options": ["倉頡", "禹", "啟", "益"], "answer": 1, "explanation": "大禹採用疏導的方法治理黃河水患，歷時十三年成功消除水患。"}, {"id": "U1_06", "unit": 1, "question": "周武王分封誰人在殷附近，以監視武庚，稱為「三監」？", "options": ["管叔、仲叔、蔡叔", "管叔、仲叔、霍叔", "仲叔、蔡叔、霍叔", "管叔、蔡叔、霍叔"], "answer": 3, "explanation": "周武王滅商後，派自己的三個弟弟管叔、蔡叔、霍叔建立「三監」，監督商紂之子武庚。"}, {"id": "U1_07", "unit": 1, "question": "西周的等級制度，天子之下等級最高的是（）。", "options": ["卿大夫", "士", "諸侯", "平民"], "answer": 2, "explanation": "西周社會等級依次為：天子、諸侯、卿大夫、士、平民與奴隸。天子之下最高為諸侯。"}, {"id": "U1_08", "unit": 1, "question": "後世的中國人自稱為甚麼？", "options": ["華夏子孫", "堯舜子孫", "炎黃子孫", "黃帝子孫"], "answer": 2, "explanation": "炎帝與黃帝被尊為中華民族的人文始祖，後人自稱為「炎黃子孫」。"}, {"id": "U1_09", "unit": 1, "question": "以下哪項有關秦滅六國的次序是正確的？", "options": ["韓、趙、魏、楚、燕、齊", "燕、魏、楚、韓、趙、齊", "楚、燕、趙、魏、齊、韓", "趙、魏、楚、燕、齊、韓"], "answer": 0, "explanation": "秦滅六國的順序為：韓（前230）、趙（前228）、魏（前225）、楚（前223）、燕（前222）、齊（前221）。"}, {"id": "U1_10", "unit": 1, "question": "我國有文字可考的歷史始於（）。", "options": ["夏朝", "商朝", "秦朝", "東晉"], "answer": 1, "explanation": "商朝的甲骨文是中國目前已知最早的成熟文字系統，標誌著我國有文字可考的歷史始於商朝。"}, {"id": "U1_11", "unit": 1, "question": "以下哪個不是「春秋五霸」之一？", "options": ["齊桓公", "秦孝公", "晉文公", "楚莊王"], "answer": 1, "explanation": "秦孝公是戰國時期任用商鞅變法的秦國國君，不屬於春秋五霸。"}, {"id": "U1_12", "unit": 1, "question": "下列在我國出現的世界上最早的人工栽培農作物不包括（）。", "options": ["黍", "水稻", "小麥", "粟"], "answer": 2, "explanation": "水稻、粟與黍是中國原產的早期農作物；小麥起源於西亞，後傳入中國。"}, {"id": "U1_13", "unit": 1, "question": "從夏商兩代國君覆亡的教訓說明國君應該（）。", "options": ["發展經濟，增強國力", "統治殘暴，不修德行", "施行仁政，勤政愛民", "重視教育，任用賢才"], "answer": 2, "explanation": "夏桀與商紂因殘暴奢侈致使國家滅亡，說明統治者應勤政愛民、施行仁政。"}, {"id": "U1_14", "unit": 1, "question": "山東號稱「齊魯大地」，「齊」「魯」這一名稱源於（）。", "options": ["商朝的部落", "西周的部落", "西周分封的諸侯國", "西周之前的部落"], "answer": 2, "explanation": "西周初年周公旦被封於魯、姜尚被封於齊，二國均位於今山東一帶。"}, {"id": "U1_15", "unit": 1, "question": "秦國商鞅推行變法後，產生了甚麼成效？(1)社會秩序穩定 (2)法治嚴明 (3)商人活躍 (4)軍隊精銳", "options": ["(1)(2)(3)", "(1)(2)(4)", "(1)(3)(4)", "(2)(3)(4)"], "answer": 1, "explanation": "商鞅變法實行重農抑商政策，限制商業活動，因此「商人活躍」並非變法的成效。"}, {"id": "U1_16", "unit": 1, "question": "北京人已經學會使用火，還會長時間保存火種。最能支援這一結論的是（）。", "options": ["《山海經》裡的遠古神話", "歷史研究學者的推測與論文", "《韓非子》裡關於遠古的記載", "遺址中發現的灰燼、燒石和燒骨"], "answer": 3, "explanation": "考古發掘出的灰燼、燒石與燒骨等實物遺存，是證明北京人使用火最直接科學的原始史料。"}, {"id": "U1_17", "unit": 1, "question": "堯順應民意將首領之位傳給德行傑出的舜，舜晚年傳給治水有功的禹。這種傳位的方法是（）。", "options": ["世襲制", "推舉制", "分封制", "禪讓制"], "answer": 3, "explanation": "原始社會末期，部落聯盟首領通過民主推舉、考查德能來傳位的制度稱為「禪讓制」。"}, {"id": "U1_18", "unit": 1, "question": "以下哪項是商紂用來對付異己的酷刑？", "options": ["凌遲", "炮烙", "梟首", "車裂"], "answer": 1, "explanation": "商紂王性情殘暴，設置「炮烙之刑」來懲罰敢於反對他的官員與百姓。"}, {"id": "U1_19", "unit": 1, "question": "《禮記·禮運》記載：「大道之行也，天下為公，選賢與能……」傳說中通過這種民主方式成為首領的是（）。", "options": ["堯舜禹", "黃帝炎帝蚩尤", "禹啟", "禹伯益啟"], "answer": 0, "explanation": "「天下為公，選賢與能」描繪的是堯、舜、禹時期的禪讓制度。"}, {"id": "U1_20", "unit": 1, "question": "以下何者屬於西周所確立的制度？(1)宗法制度 (2)井田制度 (3)禮樂制度 (4)中央集權制度", "options": ["(1)(2)(3)", "(1)(3)(4)", "(2)(3)(4)", "(1)(2)(3)(4)"], "answer": 0, "explanation": "中央集權制度是秦朝建立後才正式確立的，西周時期實行分封制、宗法制、井田制與禮樂制。"}, {"id": "U1_21", "unit": 1, "question": "禹的後代建立了夏朝，標誌著甚麼的解體？", "options": ["部落聯盟", "部落共主", "部族聯盟", "部族共主"], "answer": 0, "explanation": "夏朝的建立標誌著中國早期國家的產生，原始社會的部落聯盟體制隨之解體。"}, {"id": "U1_22", "unit": 1, "question": "黃帝在對蚩尤的戰爭中發明了甚麼？", "options": ["弓箭", "醫藥", "船", "指南車"], "answer": 3, "explanation": "相傳黃帝在涿鹿之戰中發明指南車，幫助部隊在濃霧中辨認方向，打敗蚩尤。"}, {"id": "U1_23", "unit": 1, "question": "黃帝時期，誰人創造了文字？", "options": ["倉頡", "嫘祖", "大禹", "炎帝"], "answer": 0, "explanation": "傳說黃帝的史官倉頡根據鳥獸足跡創造了象形文字。"}, {"id": "U1_24", "unit": 1, "question": "「烽火戲諸侯」與「千金買笑」的故事反映出西周王朝最終滅亡是因為（）。", "options": ["外敵入侵，王朝被外敵所滅", "朝政腐敗，統治者奢靡無度", "放鬆管理，諸侯國各自為政", "發展經濟，放鬆軍備和邊防"], "answer": 1, "explanation": "周幽王荒淫無道，利用烽火台戲弄諸侯，反映出統治極度腐敗，最終導致西周亡國。"}, {"id": "U1_25", "unit": 1, "question": "「一片甲骨驚天下」，主要是因為甲骨文是（）。", "options": ["刻在龜甲或獸骨上的文字", "是商代的文字", "目前我國發現最早的比較成熟的文字", "字母文字的起源"], "answer": 2, "explanation": "甲骨文的重大意義在於它是中國目前已知最早、體系較完整的成熟文字。"}, {"id": "U1_26", "unit": 1, "question": "西周末年，上演了一場「烽火戲諸侯」，諸侯率兵前往保護周王是遵守了（）。", "options": ["封建制的法規", "郡縣制的責任", "分封制的義務", "世襲制的傳統"], "answer": 2, "explanation": "根據分封制，諸侯獲得封地和爵位，同時承擔鎮守疆土、隨從周天子作戰等義務。"}, {"id": "U1_27", "unit": 1, "question": "哪一位部族領袖聯合其他部族興兵伐紂？", "options": ["湯", "伊尹", "倉頡", "姬發"], "answer": 3, "explanation": "周武王姬發聯合各地部族在牧野之戰中擊敗商軍，滅亡商朝。"}, {"id": "U1_28", "unit": 1, "question": "「禪讓」這種權力繼承制度，是以甚麼作為挑選共主繼承人的標準？(1)血緣 (2)品德 (3)才幹 (4)地位", "options": ["(1)(2)", "(2)(3)", "(1)(2)(4)", "(2)(3)(4)"], "answer": 1, "explanation": "禪讓制打破血緣界限，強調「選賢與能」，考核繼承人的品德與治事才幹。"}, {"id": "U1_29", "unit": 1, "question": "以下哪項不屬於商鞅變法的內容？", "options": ["設立郡、縣", "獎勵軍功", "統一度量衡", "推行井田制"], "answer": 3, "explanation": "商鞅變法的經濟措施是「廢井田，開阡陌」，即廢除井田制而非推行井田制。"}, {"id": "U1_30", "unit": 1, "question": "商周時期，成為長篇小說《封神演義》創作歷史背景的是（）。", "options": ["平王東遷", "盤庚遷殷", "城濮之戰", "武王伐紂"], "answer": 3, "explanation": "《封神演義》是以商末周初「武王伐紂」的歷史事件為背景改編的神魔小說。"}, {"id": "U1_31", "unit": 1, "question": "春秋時代兼併劇烈，只剩下若干大、小諸侯國對峙，形成二百多年的混戰局面，這段時期稱為甚麼？", "options": ["爭霸時代", "戰國時代", "七國時代", "混戰時期"], "answer": 1, "explanation": "公元前475年至前221年，大國爭奪兼併加劇，歷史上稱為戰國時代。"}, {"id": "U1_32", "unit": 1, "question": "原始社會時期，我國形成南稻北粟的農業佈局。其主要原因是（）。", "options": ["人們的不同生活習慣", "北方人喜歡吃粟，南方人喜歡吃米飯", "北方人少，南方人多", "自然條件的差異"], "answer": 3, "explanation": "南方氣候濕潤溫暖適合水稻生長，北方氣候乾旱半乾旱適合種植粟，這是由自然地理條件決定的。"}, {"id": "U1_33", "unit": 1, "question": "商朝滅亡後，誰人建立周朝？", "options": ["姬發", "姬昌", "武庚", "宜臼"], "answer": 0, "explanation": "周武王姬發滅商後建立周朝，史稱西周。"}, {"id": "U1_34", "unit": 1, "question": "春秋後期，曾稱霸一時的晉國被三家卿大夫瓜分，形成了哪三個國家？", "options": ["韓、趙、魏", "韓、趙、楚", "秦、趙、齊", "趙、魏、楚"], "answer": 0, "explanation": "韓、趙、魏三家大夫瓜分晉國，史稱「三家分晉」，標誌著戰國時代的開始。"}, {"id": "U1_35", "unit": 1, "question": "半坡遺址的房屋有圓形也有方形，一半在地下，一半在地上，是由穴居發展而來的半地穴式建築。這種建築（）。", "options": ["是我國最早的木構建築", "主要分佈在黃河流域", "建有糧倉用於儲存稻穀", "主要分佈在長江流域"], "answer": 1, "explanation": "半坡遺址位於陝西西安，處於黃河流域；河姆渡遺址則位於長江流域幹欄式建築。"}, {"id": "U1_36", "unit": 1, "question": "商朝建國初期，受到甚麼威脅而多次遷都？", "options": ["外族入侵", "夏朝遺民叛變", "水患成災", "乾旱成災"], "answer": 2, "explanation": "商朝前期因為黃河頻繁氾濫成災及內部政局動盪，屢次遷都。"}, {"id": "U1_37", "unit": 1, "question": "盤庚把國都遷到哪裡？", "options": ["亳", "鎬", "豐", "殷"], "answer": 3, "explanation": "商王盤庚將都城遷至殷（今河南安陽），此後商朝政局穩定，故商朝又稱「殷朝」。"}, {"id": "U1_38", "unit": 1, "question": "在封建制度下，諸侯對周天子負有哪些義務？(1)服從命令 (2)進貢 (3)按時朝見 (4)帶兵出戰", "options": ["(1)(2)(3)", "(1)(3)(4)", "(2)(3)(4)", "(1)(2)(3)(4)"], "answer": 3, "explanation": "諸侯必須服從天子政令、定期進貢與朝見，並在戰爭時率軍隨同天子出徵。"}, {"id": "U1_39", "unit": 1, "question": "以下哪個是春秋時代，諸侯所提出的口號？", "options": ["尊夷攘王", "尊王攘侯", "尊王攘夷", "尊民攘王"], "answer": 2, "explanation": "齊桓公任用管仲變法，打出「尊王攘夷」旗號，挾天子以令諸侯並抵禦外族。"}, {"id": "U1_40", "unit": 1, "question": "我國青銅工藝的鼎盛時期是在（）。", "options": ["夏朝", "商朝", "春秋", "戰國"], "answer": 1, "explanation": "商朝青銅鑄造技術成熟、規模宏大，如司母戊鼎，是青銅文化的鼎盛時期。"}, {"id": "U1_41", "unit": 1, "question": "以下哪個不是春秋時代「尊王攘夷」口號的內容？", "options": ["請周天子主持大局", "維護宗法制度", "尊崇周天子", "抵禦少數民族入侵"], "answer": 1, "explanation": "尊王攘夷的核心是表面尊奉天子名義並抵抗周邊少數民族騷擾，維護宗法制並非其直接主張。"}, {"id": "U1_42", "unit": 1, "question": "學者指出在民族融合過程中，被尊為中華民族人文始祖的是（）。", "options": ["倉頡和嫘祖", "炎帝和黃帝", "堯和舜", "舜和大禹"], "answer": 1, "explanation": "炎帝與黃帝部落融合形成華夏族主體，二人被尊為中華民族的「人文始祖」。"}, {"id": "U1_43", "unit": 1, "question": "山西省簡稱為「晉」，晉國在戰國時期分裂為（）。", "options": ["韓、趙、魏", "鄭、宋、楚", "韓、趙、燕", "秦、齊、楚"], "answer": 0, "explanation": "「三家分晉」指晉國被韓、趙、魏三家大夫瓜分。"}, {"id": "U1_44", "unit": 1, "question": "東周開始的標誌是（）。", "options": ["牧野之戰", "盤庚遷殷", "「烽火戲諸侯」", "遷都洛邑"], "answer": 3, "explanation": "公元前770年周平王將都城東遷洛邑（今河南洛陽），史稱東周。"}, {"id": "U1_45", "unit": 1, "question": "商亡後，姬發建立周朝，定都於哪裡？", "options": ["朝歌", "周原", "洛邑", "鎬京"], "answer": 3, "explanation": "周武王建立周朝後，定都於鎬京（今陝西西安西南）。"}, {"id": "U1_46", "unit": 1, "question": "以下何者是秦國國力轉強，軍隊精銳的主要原因？", "options": ["確立中央集權制度", "商鞅變法成功", "秦人好勇善戰", "擁有豐富礦物資源"], "answer": 1, "explanation": "商鞅變法實行獎勵軍功與農耕，極大地提高了秦國軍隊戰鬥力和經濟實力。"}, {"id": "U1_47", "unit": 1, "question": "「戰國七雄」包括有哪些國家？", "options": ["韓、趙、魏、楚、周、魯、燕", "韓、趙、魏、楚、燕、齊、秦", "韓、趙、魏、楚、宋、周、秦", "趙、魏、楚、燕、齊、衞、韓"], "answer": 1, "explanation": "戰國七雄指：齊、楚、燕、韓、趙、魏、秦七個主要大國。"}, {"id": "U1_48", "unit": 1, "question": "在封建制度下，由周天子直接管轄的土地稱為甚麼？", "options": ["王國", "王畿", "王土", "王地"], "answer": 1, "explanation": "周天子直接控制與統治的直轄區域稱為「王畿」。"}, {"id": "U1_49", "unit": 1, "question": "甲骨文最原始的造字方法是（）。", "options": ["象形", "指事", "會意", "假借"], "answer": 0, "explanation": "象形是用圖畫線條描摹實物形狀的造字方法，是甲骨文最原始基本的造字法。"}, {"id": "U1_50", "unit": 1, "question": "考古發現是研究歷史的主要依據。下列可以用於研究史前時期歷史的是（）。", "options": ["北京人頭蓋骨化石", "青銅爵", "刻有文字的甲骨", "戰國銅壺"], "answer": 0, "explanation": "史前時期尚無文字記載，北京人頭蓋骨化石屬於遠古人類遺跡，能直接反映史前歷史。"}, {"id": "U3_01", "unit": 3, "question": "漢武帝實行察舉制度，改變了漢初怎樣的局面？", "options": ["官僚子弟壟斷官職", "官場貪污", "官員愚昧", "士人壟斷官場"], "answer": 0, "explanation": "察舉制打破了漢初由功臣貴族及官僚子弟壟斷官職的局面，建立起自下而上的選官途徑。"}, {"id": "U3_02", "unit": 3, "question": "東漢末年，以宗教的方式籠絡人心，在貧苦農民中樹立威望後率眾發動大規模農民起義的是（）。", "options": ["陳勝", "吳廣", "劉邦", "張角"], "answer": 3, "explanation": "張角創立「太平道」，以治病傳教籠絡人心，發動了黃巾起義。"}, {"id": "U3_03", "unit": 3, "question": "下列各項，不屬於秦朝君主專制中央集權制度的是（）。", "options": ["確立皇帝制度", "中央建立三公九卿", "地方建立郡縣制度", "統一度量衡、貨幣、文字"], "answer": 3, "explanation": "統一度量衡、貨幣與文字屬於經濟和文化統一措施，政治專制集權體制包含皇帝制、三公九卿制和郡縣制。"}, {"id": "U3_04", "unit": 3, "question": "秦始皇以哪裡為中心，修築貫通全國的道路？", "options": ["咸陽", "洛邑", "洛陽", "陽城"], "answer": 0, "explanation": "秦始皇統一後，以都城咸陽為中心修建馳道與直道，加強中央對全國的控制。"}, {"id": "U3_05", "unit": 3, "question": "班固《漢書·食貨志》記載秦朝：「一歲力役，三十倍於古。田租口賦，二十倍於古……」這一記載可以印證（）。", "options": ["秦朝工程多且耗費巨大", "秦始皇對百姓冷酷無情", "秦統一後國庫收入增加", "秦朝大力推行統一措施"], "answer": 0, "explanation": "「力役三十倍、賦稅二十倍」說明秦朝大量徵調民力修建長城、阿房宮等大型工程，極其耗費民力物力。"}, {"id": "U3_06", "unit": 3, "question": "秦末農民戰爭中，對推翻秦朝統治起決定作用的是（）。", "options": ["陳勝吳廣起義軍打到咸陽附近", "劉邦率兵逼咸陽", "項羽率軍在鉅鹿大敗秦軍主力", "秦二世被逼自殺"], "answer": 2, "explanation": "項羽在鉅鹿之戰中破釜沉舟，消滅了秦軍主力部隊，從根本上瓦解了秦朝的軍事統治。"}, {"id": "U3_07", "unit": 3, "question": "秦始皇統一全國後推行統一貨幣的措施，其意義不包括（）。", "options": ["促進各地經濟交流", "利於國家經濟管理", "利於中華文化的發展", "改變貨幣混亂的局面"], "answer": 2, "explanation": "促進文化發展主要是「統一文字」（小篆）的歷史意義，而非統一貨幣。"}, {"id": "U3_08", "unit": 3, "question": "秦始皇規定一律以甚麼為上幣，全國統一使用？", "options": ["白金", "銀", "青銅", "黃金"], "answer": 3, "explanation": "秦朝規定黃金為上幣（用於大額賞賜與交易），半兩銅錢為下幣。"}, {"id": "U3_09", "unit": 3, "question": "漢武帝時董仲舒建議：「諸不在六藝之科、孔子之術者，皆絕其道，勿使並進。」其主張是（）。", "options": ["罷黜百家，獨尊儒術", "順其自然，無為而治", "知己知彼，百戰不殆", "仁政治國，輕徭薄賦"], "answer": 0, "explanation": "董仲舒建議漢武帝將儒家思想立為正統思想，即「罷黜百家，獨尊儒術」。"}, {"id": "U3_10", "unit": 3, "question": "「阿房、阿房、亡始皇」是秦末民間童謠。從中可以知道王朝滅亡的主要原因是（）。", "options": ["修建阿房宮", "農民起義", "楚漢之爭", "秦的暴政"], "answer": 3, "explanation": "修建阿房宮是秦暴政的縮影，童謠反映出秦朝興建浩大工程、苛政濫刑的暴政導致了王朝覆亡。"}, {"id": "U3_11", "unit": 3, "question": "下列各項，何者為漢武帝所規定的國家標準貨幣？", "options": ["四銖錢", "五銖錢", "六角錢", "半吊錢"], "answer": 1, "explanation": "漢武帝收回地方鑄幣權，由中央統一鑄造標準銅錢「五銖錢」。"}, {"id": "U3_12", "unit": 3, "question": "劉邦的軍隊攻入咸陽，子嬰殺了誰人投降？", "options": ["秦始皇", "趙高", "秦二世", "扶蘇"], "answer": 1, "explanation": "秦二世死後子嬰即位，設計殺死權臣趙高，隨後向劉邦投降。"}, {"id": "U3_13", "unit": 3, "question": "項羽在哪裡自刎而死？", "options": ["漢中", "巴蜀", "烏江", "垓下"], "answer": 2, "explanation": "項羽在垓下之戰失敗後逃至烏江邊，自感無顏見江東父老，遂自刎身亡。"}, {"id": "U3_14", "unit": 3, "question": "公元前209年「奮臂大澤而天下應」，成千上萬農民揭竿而起。這一歷史事件是（）。", "options": ["陳勝、吳廣起義", "黃巾起義", "安史之亂", "陳橋兵變"], "answer": 0, "explanation": "公元前209年陳勝、吳廣在大澤鄉發動起義，是中國歷史上第一次大規模農民起義。"}, {"id": "U3_15", "unit": 3, "question": "戰國時期由秦國發展起來的中國歷史上第一個大一統王朝是（）。", "options": ["西周", "秦朝", "戰國", "西漢"], "answer": 1, "explanation": "公元前221年秦滅六國，建立中國歷史上第一個統一的多民族中央集權封建國家秦朝。"}, {"id": "U3_16", "unit": 3, "question": "項羽憑藉強大軍力，自立為甚麼？", "options": ["楚王", "漢王", "西漢王", "西楚霸王"], "answer": 3, "explanation": "滅秦後項羽分封諸侯，自立為「西楚霸王」，封劉邦為漢王。"}, {"id": "U3_17", "unit": 3, "question": "秦始皇規定一律以圓形方孔的銅錢為下幣，稱為甚麼？", "options": ["秦圓幣", "秦半兩", "秦銖錢", "秦銅錢"], "answer": 1, "explanation": "秦始皇統一貨幣，規定全國通用圓形方孔的「秦半兩」銅錢作為下幣。"}, {"id": "U3_18", "unit": 3, "question": "西漢初年統治者採取輕徭薄賦發展生產，其根本目的是（）。", "options": ["吸取秦亡的教訓", "減輕人們的負擔", "發展生產", "鞏固政權"], "answer": 3, "explanation": "西漢初年推行休養生息政策，根本目的在於恢復經濟以鞏固漢朝新政權的統治。"}, {"id": "U3_19", "unit": 3, "question": "劉秀重建的漢朝政權稱為東漢，是因為其都城在原都城東方。東漢都城為（）。", "options": ["成都", "洛陽", "西安", "北京"], "answer": 1, "explanation": "光武帝劉秀建立東漢，定都洛陽，因洛陽位於西漢都城長安以東而稱東漢。"}, {"id": "U3_20", "unit": 3, "question": "春秋時代兼併劇烈，只剩下若干大、小諸侯國對峙，形成二百多年的混戰局面，這段時期稱為甚麼？", "options": ["爭霸時代", "戰國時代", "七國時代", "混戰時期"], "answer": 1, "explanation": "春秋之後諸侯國數量大減，進入七雄並立兼併混戰的戰國時代。"}, {"id": "U3_21", "unit": 3, "question": "東漢劉秀（光武帝）統治時期，社會出現比較安定的局面，經濟得到恢復和發展，史稱（）。", "options": ["文景之治", "光武中興", "宦官專權", "黃巾起義"], "answer": 1, "explanation": "光武帝劉秀治理下東漢社會安定、經濟繁榮，歷史上稱為「光武中興」。"}, {"id": "U3_22", "unit": 3, "question": "漢武帝實行推恩令並「罷黜百家，獨尊儒術」，其主要目的是（）。", "options": ["加強中央集權", "排斥異己", "平定叛亂", "控制思想"], "answer": 0, "explanation": "漢武帝政治上推行推恩令削弱藩王，思想上獨尊儒術，核心目的均為加強中央集權。"}, {"id": "U3_23", "unit": 3, "question": "漢高祖建立漢朝之後，吸取秦朝速亡的教訓，採取了什麼政策（）。", "options": ["重視文教", "允許少數民族內遷", "休養生息", "鹽鐵專賣"], "answer": 2, "explanation": "漢初經濟荒廢，漢高祖吸取秦朝暴政速亡教訓，採取「休養生息」政策。"}, {"id": "U3_24", "unit": 3, "question": "《三字經》中「嬴秦氏，始兼併……高祖興，漢業建」所包含的朝代順序是（）。", "options": ["秦朝→西漢", "西周→東周", "夏朝→西周", "商朝→西周"], "answer": 0, "explanation": "「嬴秦氏」指秦朝建立，「高祖興」指劉邦建立西漢王朝。"}, {"id": "U3_25", "unit": 3, "question": "西漢對匈奴由初期的和親轉變為漢武帝時期派衛青、霍去病大舉反擊，這一變化的根本原因是（）。", "options": ["漢武帝的雄才大略", "漢武帝時國力強盛", "漢武帝時匈奴內亂", "漢武帝以前的皇帝軟弱"], "answer": 1, "explanation": "經過「文景之治」的幾十年積累，漢武帝時期經濟繁榮、國力極度強盛，提供了物質基礎。"}, {"id": "U3_26", "unit": 3, "question": "成語故事的背後蘊含著悠久的中華歷史。下列成語故事搭配錯誤的是（）。", "options": ["霸王項羽——約法三章", "楚漢之爭——楚河漢界", "大將趙括——紙上談兵", "陳勝吳廣——斬木為兵"], "answer": 0, "explanation": "「約法三章」是劉邦攻入咸陽後與關中父老定下的協議，而非項羽。"}, {"id": "U3_27", "unit": 3, "question": "秦始皇派人開鑿溝通長江水系和珠江水系的運河，促進了嶺南交流。這條運河是（）。", "options": ["鄭國渠", "靈渠", "紅旗渠", "白渠"], "answer": 1, "explanation": "秦始皇開鑿靈渠，連接了湘江與灕江，成功溝通了長江與珠江兩大水系。"}, {"id": "U3_28", "unit": 3, "question": "以下哪項有關秦的描述是正確的？", "options": ["實行合縱策略", "在長平打敗楚、趙聯軍", "採用離間計分化六國", "在十二年內完成統一事業"], "answer": 2, "explanation": "秦國採用遠交近攻與離間計分化破壞六國合縱；秦滅六國歷時十年（前230–前221）。"}, {"id": "U3_29", "unit": 3, "question": "成語「破釜沉舟」表現了項羽勇往直前的決心，該成語出自下列哪次戰役（）。", "options": ["涿鹿之戰", "牧野之戰", "鉅鹿之戰", "馬陵之戰"], "answer": 2, "explanation": "項羽在鉅鹿之戰中命令士兵渡河後鑿沉渡船、打破飯鍋（破釜沉舟），大敗秦軍。"}, {"id": "U3_30", "unit": 3, "question": "漢文帝與漢景帝時期繼續推行休養生息政策，出現繁榮局面史稱（）。", "options": ["光武中興", "文景之治", "百家爭鳴", "大唐盛世"], "answer": 1, "explanation": "漢文帝與漢景帝時期政治清明、經濟發達、社會安定，史稱「文景之治」。"}, {"id": "U3_31", "unit": 3, "question": "秦朝時南海郡郡守產生的方式是（）。", "options": ["民主推舉", "官職世襲", "逐級分封", "朝廷任命"], "answer": 3, "explanation": "秦朝實行郡縣制，郡守與縣令均由皇帝和中央朝廷直接任免，不得世襲。"}, {"id": "U3_32", "unit": 3, "question": "「東漢王朝是在外戚與宦官打來鬥去、皇帝像走馬燈換來換去中走向滅亡的。」描述的現象包含（）。(1)帝位爭奪激烈 (2)皇帝在位時間短 (3)王朝存在時間短 (4)外戚宦官交替專權", "options": ["(1)(2)(4)", "(2)(3)(4)", "(1)(3)(4)", "(2)(4)"], "answer": 0, "explanation": "東漢歷時近200年（25–220年），享國時間並不短，故(3)不正確。"}, {"id": "U3_33", "unit": 3, "question": "公元9年滅亡西漢的外戚是（）。", "options": ["劉秀", "王莽", "劉邦", "張角"], "answer": 1, "explanation": "公元9年西漢外戚王莽篡漢稱帝，改國號為「新」，西漢滅亡。"}, {"id": "U3_34", "unit": 3, "question": "圖示展示地方設置「郡（守）」與「縣（令或長）」，反映秦朝地方行政模式是（）。", "options": ["皇帝制度", "丞相制度", "太尉制度", "郡縣制度"], "answer": 3, "explanation": "秦朝取消分封制，在全國全面推行郡縣制，劃分為郡、縣兩級地方行政機構。"}, {"id": "U3_35", "unit": 3, "question": "漢武帝藉口諸侯所獻黃金成色不足，一次奪去106個諸侯的爵位。漢武帝的做法（）。", "options": ["抵禦了匈奴南下襲擾", "有利於加強中央集權", "落實了休養生息政策", "有助於經濟重心南移"], "answer": 1, "explanation": "漢武帝通過「酎金奪爵」極大地削弱了地方諸侯王勢力，加強了中央集權。"}, {"id": "U3_36", "unit": 3, "question": "漢代連接中國與西方的貿易與文化交通網絡是（）。", "options": ["匈奴諸部", "絲綢之路", "西域都護", "西域諸國"], "answer": 1, "explanation": "張騫通西域後開闢的「絲綢之路」，成為連接亞歐東西方文明的中樞通道。"}, {"id": "U3_37", "unit": 3, "question": "《漢書·張騫傳》記載：「然騫鑿空……」材料中的「鑿空」指的是（）。", "options": ["開通了海上絲綢之路", "開闢了中原通往西域的道路", "聯合大月氏擊敗匈奴", "直接將西域諸國納入漢朝版圖"], "answer": 1, "explanation": "張騫出使西域被譽為「鑿空」，意指開闢了中原與西域間的交通路線。"}, {"id": "U3_38", "unit": 3, "question": "西漢武帝設13州部並置刺史監察地方豪強與官吏。說明刺史制度的建立（）。", "options": ["完善了地方行政管理機構", "徹底消滅了地方豪強勢力", "平衡了州郡和封國的權力分配", "大大加強了中央對地方的控制"], "answer": 3, "explanation": "刺史制度是中央監督地方的高級監察體制，顯著強化了中央對地方官員及豪強的控制。"}, {"id": "U3_39", "unit": 3, "question": "漫畫中皇帝宣告「天下大事，悉決於朕」，下設太尉、丞相、御史大夫，反映的資訊是（）。", "options": ["學術繁榮，百家爭鳴", "首創縣制，派員管理", "實現統一，創新制度", "名為推恩，實奪其權"], "answer": 2, "explanation": "圖示反映秦始皇統一六國後創立皇帝制度與中央「三公九卿」官制。"}, {"id": "U3_40", "unit": 3, "question": "歷史學家錢穆認為郡縣制使中國「永為一統一國」。郡縣制能發揮此績效是因為（）。", "options": ["能夠有效消除地方割據勢力", "中央任免官吏基本保障集權", "提高了地方政府的行政效率", "保證了歷代官僚隊伍的廉潔"], "answer": 1, "explanation": "郡縣制打破了官吏世襲制，由中央直接任免地方官員，從體制上保障了中央集權。"}, {"id": "U3_41", "unit": 3, "question": "湖北雲夢秦簡記載大量官府行政法規與規章制度。這些規章制度有助於（）。", "options": ["廢除郡縣制度", "鞏固分封", "完善法律制度", "尊崇儒術"], "answer": 2, "explanation": "秦簡律令詳細規範了官員職責與行政手續，反映了秦朝法律制度的嚴密與完善。"}, {"id": "U3_42", "unit": 3, "question": "尹灣漢墓出土《集簿》記載「縣十八，侯國十八，邑二」。可知當時地方行政制度是（）。", "options": ["分封制", "郡縣制", "郡國並行制", "世襲制"], "answer": 2, "explanation": "西漢初期地方既設有郡縣，又分封諸侯國與侯國，稱為「郡國並行制」。"}, {"id": "U3_43", "unit": 3, "question": "「漢武帝推恩之末，諸侯寡弱，貧者至乘牛車。」說明推恩令（）。", "options": ["打擊了豪強地主", "削弱了諸侯國的實力", "解除了封國威脅", "強化中央對經濟控制"], "answer": 1, "explanation": "推恩令允許諸侯將封地分給子弟，封國越分越小，極大地削弱了諸侯國的政治與經濟實力。"}, {"id": "U3_44", "unit": 3, "question": "秦朝長城西起與東至的起止點分別是（）。(1)嘉峪關 (2)臨洮 (3)鴨綠江 (4)遼東", "options": ["(1)(3)", "(1)(4)", "(2)(3)", "(2)(4)"], "answer": 3, "explanation": "秦始皇修建的防禦匈奴萬里長城，西起臨洮，東至遼東。"}, {"id": "U3_45", "unit": 3, "question": "漢朝商業繁榮，設有專門商業區「市」的大都市是（）。", "options": ["長安", "咸陽", "洛陽", "成都"], "answer": 0, "explanation": "西漢都城長安城內劃分有東市、西市等專門進行商品交易的商業區域。"}, {"id": "U3_46", "unit": 3, "question": "東漢中期以後政治日益黑暗的根本原因是（）。", "options": ["皇帝年幼", "王莽改制失敗", "外戚宦官專權", "太后主持朝政"], "answer": 2, "explanation": "東漢中後期皇帝多早逝且幼年即位，導致外戚與宦官輪番專權交替把持朝政。"}, {"id": "U3_47", "unit": 3, "question": "秦朝為鞏固統一，在經濟文化領域採取的措施有（）。(1)統一文字 (2)統一貨幣 (3)統一度量衡 (4)焚書坑儒", "options": ["(1)(2)(4)", "(2)(3)(4)", "(1)(3)(4)", "(1)(2)(3)"], "answer": 3, "explanation": "焚書坑儒屬於思想控制的極端措施，經濟文化領域的統一措施為統一文字、貨幣與度量衡。"}, {"id": "U3_48", "unit": 3, "question": "秦簡記載：「五人共同盜竊，贓物在一錢以上，斷去左足……判為刑徒。」反映秦朝（）。", "options": ["賦稅沉重", "徭役繁重", "兵役素重", "法律嚴苛"], "answer": 3, "explanation": "竊一錢即處以黥面割足的殘酷刑罰，典型體現了秦朝法律嚴苛峻殘。"}, {"id": "U3_49", "unit": 3, "question": "下列屬於研究秦朝歷史的「原始史料」（第一手史料）的是（）。", "options": ["《史記》中的相關記載", "秦始皇陵兵馬俑", "孟姜女哭長城的傳說", "電視劇《大秦帝國》"], "answer": 1, "explanation": "秦始皇陵兵馬俑是秦朝當時留存下來的遺址文物，屬於客觀的原始第一手史料。"}, {"id": "U3_50", "unit": 3, "question": "象棋棋盤中間寫有「楚河漢界」，這種遊戲的產生與下列哪一歷史事件有關？", "options": ["牧野大戰", "晉楚爭霸", "吳越爭霸", "楚漢之爭"], "answer": 3, "explanation": "「楚河漢界」源於秦亡後項羽（西楚）與劉邦（漢）劃鴻溝為界割據對峙的楚漢戰爭。"}];
+
+        // 全域變數
+        let currentQuizQuestions = [];
+        let userAnswers = [];
+        let currentIndex = 0;
+        let quizMode = 'exam'; // 'exam' or 'practice'
+        let timerInterval = null;
+        let secondsElapsed = 0;
+        let timerSeconds = 0;
+        let isTimed = false;
+        let isHintShown = false;
+
+        // 初始化
+        function init() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+            }
+        }
+
+        function toggleTheme() {
+            if (document.body.getAttribute('data-theme') === 'dark') {
+                document.body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // 洗牌算法 (Shuffle)
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // 開始測驗
+        function startQuiz() {
+            const unitVal = document.getElementById('unit-select').value;
+            const countVal = document.getElementById('count-select').value;
+            quizMode = document.getElementById('mode-select').value;
+            const timerVal = document.getElementById('timer-toggle').value;
+
+            // 1. 篩選題目範圍
+            let pool = [];
+            if (unitVal === '1') {
+                pool = rawQuestions.filter(q => q.unit === 1);
+            } else if (unitVal === '3') {
+                pool = rawQuestions.filter(q => q.unit === 3);
+            } else {
+                pool = [...rawQuestions];
+            }
+
+            // 2. 打亂順序並裁切題目數量 (30, 50, all)
+            pool = shuffleArray(pool);
+            if (countVal === '30') {
+                pool = pool.slice(0, 30);
+            } else if (countVal === '50') {
+                pool = pool.slice(0, 50);
+            }
+
+            // 對每道題目的選項進行打亂，並重新記錄正確答案索引
+            currentQuizQuestions = pool.map(q => {
+                let opts = q.options.map((opt, idx) => ({ text: opt, isCorrect: idx === q.answer }));
+                opts = shuffleArray(opts);
+                let newAnswerIdx = opts.findIndex(o => o.isCorrect);
+                return {
+                    ...q,
+                    options: opts.map(o => o.text),
+                    answer: newAnswerIdx
+                };
+            });
+
+            userAnswers = new Array(currentQuizQuestions.length).fill(null);
+            currentIndex = 0;
+
+            // 3. 設定計時器
+            secondsElapsed = 0;
+            clearInterval(timerInterval);
+            if (timerVal !== 'off') {
+                isTimed = true;
+                timerSeconds = parseInt(timerVal) * 60;
+                timerInterval = setInterval(updateTimerCountdown, 1000);
+            } else {
+                isTimed = false;
+                timerInterval = setInterval(() => { secondsElapsed++; updateTimerDisplay(); }, 1000);
+            }
+
+            // 4. 切換頁面
+            document.getElementById('setup-page').classList.add('hidden');
+            document.getElementById('results-page').classList.add('hidden');
+            document.getElementById('quiz-page').classList.remove('hidden');
+
+            renderQuizMap();
+            renderQuestion();
+        }
+
+        function updateTimerCountdown() {
+            secondsElapsed++;
+            timerSeconds--;
+            if (timerSeconds <= 0) {
+                clearInterval(timerInterval);
+                alert('⏰ 時間到！系統將自動提交答案。');
+                submitQuiz();
+                return;
+            }
+            let m = Math.floor(timerSeconds / 60);
+            let s = timerSeconds % 60;
+            document.getElementById('quiz-timer').innerText = `⏱️ ${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+        }
+
+        function updateTimerDisplay() {
+            let m = Math.floor(secondsElapsed / 60);
+            let s = secondsElapsed % 60;
+            document.getElementById('quiz-timer').innerText = `⏱️ ${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+        }
+
+        // 渲染答題地圖
+        function renderQuizMap() {
+            const mapContainer = document.getElementById('q-map');
+            mapContainer.innerHTML = '';
+            currentQuizQuestions.forEach((_, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'q-map-item';
+                btn.innerText = idx + 1;
+                btn.id = `map-item-${idx}`;
+                btn.onclick = () => {
+                    currentIndex = idx;
+                    renderQuestion();
+                };
+                mapContainer.appendChild(btn);
+            });
+        }
+
+        // 渲染目前題目
+        function renderQuestion() {
+            const q = currentQuizQuestions[currentIndex];
+            const total = currentQuizQuestions.length;
+            isHintShown = false;
+
+            // 進度條與標題
+            document.getElementById('quiz-progress-text').innerText = `題目 ${currentIndex + 1} / ${total}`;
+            document.getElementById('progress-bar').style.width = `${((currentIndex + 1) / total) * 100}%`;
+            document.getElementById('question-title').innerText = `${currentIndex + 1}. ${q.question}`;
+
+            // 渲染選項
+            const optContainer = document.getElementById('options-container');
+            optContainer.innerHTML = '';
+
+            const expBox = document.getElementById('instant-explanation');
+            const hintBtnBox = document.getElementById('hint-btn-box');
+
+            expBox.classList.add('hidden');
+            hintBtnBox.classList.add('hidden');
+
+            q.options.forEach((optText, optIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = `${String.fromCharCode(65 + optIdx)}. ${optText}`;
+
+                if (userAnswers[currentIndex] === optIdx) {
+                    btn.classList.add('selected');
+                }
+
+                // 即時溫習模式處理
+                if (quizMode === 'practice') {
+                    if (userAnswers[currentIndex] !== null) {
+                        btn.disabled = true;
+                        if (optIdx === q.answer) {
+                            btn.classList.add('correct');
+                        } else if (userAnswers[currentIndex] === optIdx) {
+                            btn.classList.add('wrong');
+                        }
+                    }
+                }
+
+                btn.onclick = () => selectOption(optIdx);
+                optContainer.appendChild(btn);
+            });
+
+            // 即時溫習模式下：顯示「提示按鈕」及解析邏輯
+            if (quizMode === 'practice') {
+                hintBtnBox.classList.remove('hidden');
+                document.getElementById('explanation-text').innerText = q.explanation;
+                
+                // 如果已經作答過，自動展開解析
+                if (userAnswers[currentIndex] !== null) {
+                    expBox.classList.remove('hidden');
+                }
+            }
+
+            // 更新地圖標註
+            document.querySelectorAll('.q-map-item').forEach((item, idx) => {
+                item.classList.remove('active');
+                if (idx === currentIndex) item.classList.add('active');
+                if (userAnswers[idx] !== null) item.classList.add('answered');
+            });
+
+            // 按鈕顯示邏輯
+            document.getElementById('prev-btn').disabled = (currentIndex === 0);
+            if (currentIndex === total - 1) {
+                document.getElementById('next-btn').classList.add('hidden');
+                document.getElementById('submit-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('next-btn').classList.remove('hidden');
+                document.getElementById('submit-btn').classList.add('hidden');
+            }
+        }
+
+        // 切換提示顯示狀態
+        function toggleHint() {
+            const expBox = document.getElementById('instant-explanation');
+            isHintShown = !isHintShown;
+            if (isHintShown) {
+                expBox.classList.remove('hidden');
+            } else {
+                // 如果未作答，才允許隱藏提示
+                if (userAnswers[currentIndex] === null) {
+                    expBox.classList.add('hidden');
+                }
+            }
+        }
+
+        function selectOption(optIdx) {
+            if (quizMode === 'practice' && userAnswers[currentIndex] !== null) return; // 即時模式答完不可改
+
+            userAnswers[currentIndex] = optIdx;
+            renderQuestion();
+        }
+
+        function changeQuestion(delta) {
+            const newIdx = currentIndex + delta;
+            if (newIdx >= 0 && newIdx < currentQuizQuestions.length) {
+                currentIndex = newIdx;
+                renderQuestion();
+            }
+        }
+
+        // 提交試卷
+        function submitQuiz() {
+            clearInterval(timerInterval);
+
+            // 計算得分
+            let correctCount = 0;
+            currentQuizQuestions.forEach((q, idx) => {
+                if (userAnswers[idx] === q.answer) {
+                    correctCount++;
+                }
+            });
+
+            const total = currentQuizQuestions.length;
+            const wrongCount = total - correctCount;
+            const score = Math.round((correctCount / total) * 100);
+
+            // 顯示結算數據
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('stat-correct').innerText = correctCount;
+            document.getElementById('stat-wrong').innerText = wrongCount;
+
+            let m = Math.floor(secondsElapsed / 60);
+            let s = secondsElapsed % 60;
+            document.getElementById('stat-time').innerText = `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+
+            // 評語
+            let comment = "繼續努力，多加溫習！";
+            if (score === 100) comment = "🌟 太棒了！全對滿分！";
+            else if (score >= 80) comment = "👍 表現優異，基本概念掌握非常紮實！";
+            else if (score >= 60) comment = "📖 及格了！建議再強化錯題概念。";
+            document.getElementById('score-comment').innerText = comment;
+
+            // 是否顯示錯題重做按鈕
+            if (wrongCount > 0) {
+                document.getElementById('redo-wrong-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('redo-wrong-btn').classList.add('hidden');
+            }
+
+            // 渲染錯題與總檢視
+            renderReviewList();
+
+            // 切換視圖
+            document.getElementById('quiz-page').classList.add('hidden');
+            document.getElementById('results-page').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function renderReviewList() {
+            const container = document.getElementById('review-container');
+            container.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, idx) => {
+                const isCorrect = userAnswers[idx] === q.answer;
+                const item = document.createElement('div');
+                item.className = 'review-item';
+
+                const statusBadge = isCorrect 
+                    ? `<span style="color: var(--success); font-weight: bold;">[正確]</span>`
+                    : `<span style="color: var(--danger); font-weight: bold;">[錯誤]</span>`;
+
+                const userChoiceText = userAnswers[idx] !== null 
+                    ? `${String.fromCharCode(65 + userAnswers[idx])}. ${q.options[userAnswers[idx]]}`
+                    : `<span style="color: var(--danger);">未作答</span>`;
+
+                const correctChoiceText = `${String.fromCharCode(65 + q.answer)}. ${q.options[q.answer]}`;
+
+                item.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 8px;">
+                        ${idx + 1}. ${q.question} ${statusBadge}
+                    </div>
+                    <div style="font-size: 0.95rem; margin-bottom: 4px;">你的答案：${userChoiceText}</div>
+                    <div style="font-size: 0.95rem; color: var(--success); margin-bottom: 8px;">正確答案：${correctChoiceText}</div>
+                    <div class="explanation-box" style="margin-top: 5px;">
+                        <strong>💡 導師解析：</strong> ${q.explanation}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // 僅重做錯題
+        function redoWrongQuestions() {
+            let wrongQuestions = [];
+            currentQuizQuestions.forEach((q, idx) => {
+                if (userAnswers[idx] !== q.answer) {
+                    wrongQuestions.push(q);
+                }
+            });
+
+            if (wrongQuestions.length === 0) return;
+
+            currentQuizQuestions = wrongQuestions;
+            userAnswers = new Array(currentQuizQuestions.length).fill(null);
+            currentIndex = 0;
+
+            secondsElapsed = 0;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => { secondsElapsed++; updateTimerDisplay(); }, 1000);
+
+            document.getElementById('results-page').classList.add('hidden');
+            document.getElementById('quiz-page').classList.remove('hidden');
+
+            renderQuizMap();
+            renderQuestion();
+            window.scrollTo(0, 0);
+        }
+
+        function restartQuiz() {
+            document.getElementById('results-page').classList.add('hidden');
+            document.getElementById('setup-page').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
